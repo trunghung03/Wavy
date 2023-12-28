@@ -3,7 +3,7 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-#include "stb_image.h"
+#include "image.h"
 
 #define FRAME_PATH "./asset/frame.png"
 
@@ -20,6 +20,8 @@ int window_height = 500;
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* img_texture;
+
+struct Frame* frame;
 
 
 void setupSDL() {
@@ -62,14 +64,18 @@ void setupSDL() {
 
 // image setup
 void setupFrame() {
+    // Set up display frame on SDL
     img_texture = IMG_LoadTexture(renderer, FRAME_PATH);
     SDL_QueryTexture(img_texture, NULL, NULL, &window_width, &window_height);
     window_height *= 2; // make space for drawing sine waves
     // Added some padding to prevent cutoff
     SDL_SetWindowSize(window, window_width, window_height + 5);
+
+    // read from png image with stb_image
+    frame = load_frame(FRAME_PATH);
 }
 
-int main2(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     setupSDL();
 
     setupFrame();
@@ -128,23 +134,6 @@ int main2(int argc, char* argv[]) {
     return 1;
 }
 
-int main2(void) {
-    int x, y, n;
-    unsigned char *data = stbi_load(FRAME_PATH, &x, &y, &n, 1);
-
-    int i, j;
-    for (i = 0; i < y; i++) {
-        for (j = 0; j < x; j++) {
-            printf("%d ", data[i * x + j]);
-        }
-        printf("\n");
-    }
-    
-    stbi_image_free(data);
-
-    return 0;
-}
-
 // convert normalized x, y coord to real coord
 // Used drawLine instead of point because points can have gaps
 inline void drawLine(float prevX, float prevY, float x, float y) {
@@ -156,7 +145,7 @@ inline float map(float v, float a, float b, float c, float d) {
 }
 
 void cleanup() {
-
+    free_frame(frame);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
