@@ -29,7 +29,7 @@ void setupSDL() {
     SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "0");
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    window = SDL_CreateWindow("Demo",
+    window = SDL_CreateWindow("Bad Apple",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         window_width, window_height, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
 
@@ -82,7 +82,12 @@ int main(int argc, char* argv[]) {
 
     SDL_Rect canvas = { 0, 0, window_width, window_height / 2 };
 
-    int frame = 31410;
+    int frameCount = 31410;
+    int horizontal_div = 30;
+    int horizontal_div_height = canvas.h / horizontal_div;
+    float maxAmp = (float) horizontal_div_height / 2 - 2;
+    float frequency = 70;
+
     int running = 1;
     while (running) {
         /* Input */
@@ -102,33 +107,36 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 1);
         
         {
-            float prevX = -150;
-            float prevY = (float) canvas.h / 2;
-            int i;
-            for (i = 0; i < window_width; i++) {
-                float angle = map((float) i, 0, (float) window_width, 0, (float) M_PI * 2);
-                float frequency = 30;
-                float phase = (float) frame / 50;
-                float sinValue = sinf(phase + angle * frequency);
-                //float sinValue = sinf(angle * frequency);
+            int horizontal;
+            for (horizontal = 0; horizontal < horizontal_div; horizontal++) {
+                float y = (float) horizontal * horizontal_div_height + (float) horizontal_div_height / 2;
 
-                float amp = map((float) sinf(angle * (frequency / 7)), -1, 1, 0, (float) canvas.h / 4);
+                float prevX = -150;
+                float prevY = (float) y;
+                int x;
+                for (x = 0; x < window_width; x++) {
+                    float angle = map((float)x, 0, (float)window_width, 0, (float)M_PI * 2);
+                    float phase = (float)frameCount / 10;
+                    float sinValue = sinf(phase + angle * frequency);
+                    //float sinValue = sinf(angle * frequency);
 
+                    int grayIndex = get_pixel(frame, x, y);
 
-                float y = (float) canvas.h / 2 + sinValue * amp + canvas.h;
-                drawLine(prevX, prevY, (float) i, y);
+                    float amp = map((float) grayIndex, 0, 255, 0, maxAmp);
 
-                prevX = (float) i;
-                prevY = y;
+                    float subY = y + sinValue * amp + canvas.h;
+                    drawLine(prevX, prevY, (float)x, subY);
+
+                    prevX = (float)x;
+                    prevY = subY;
+                }
             }
             
         }
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 1);
-
         SDL_RenderPresent(renderer);
 
-        frame = (frame + 1) % 31415; // Prevent overflow, the 314 is about pi
+        frameCount = (frameCount + 1) % 31415; // Prevent overflow, the 314 is about pi
     }
 
     return 1;
@@ -141,7 +149,7 @@ inline void drawLine(float prevX, float prevY, float x, float y) {
 }
 
 inline float map(float v, float a, float b, float c, float d) {
-    return (v - a) / (b - a) * (c + (d - c));
+    return (v - a) / (b - a) * (d - c) + c;
 }
 
 void cleanup() {

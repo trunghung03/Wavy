@@ -29,6 +29,14 @@ void free_frame(struct Frame* frame) {
     free(frame);
 }
 
-unsigned char getPixel(struct Frame* frame, int x, int y) {
+unsigned char get_pixel(struct Frame* frame, int x, int y) {
+    if (x > frame->x || x < 0) {
+        printf("out of bound: x = %d, bound = %d\n", x, frame->x);
+        exit(1);
+    }
+    else if (y > frame->y || y < 0) {
+        printf("out of bound: y = %d, bound = %d\n", y, frame->y);
+        exit(1);
+    }
     return frame->data[y * frame->x + x];
 }
