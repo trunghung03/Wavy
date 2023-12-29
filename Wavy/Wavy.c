@@ -6,6 +6,7 @@
 #include "image.h"
 
 #define FRAME_PATH "./asset/frame.png"
+#define FRAME2_PATH "./asset/frame2.png"
 
 void setupSDL();
 void setupFrame();
@@ -20,9 +21,6 @@ int window_height = 500;
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* img_texture;
-
-struct Frame* frame;
-
 
 void setupSDL() {
     /* SDL setup */
@@ -71,8 +69,7 @@ void setupFrame() {
     // Added some padding to prevent cutoff
     SDL_SetWindowSize(window, window_width, window_height + 5);
 
-    // read from png image with stb_image
-    frame = load_frame(FRAME_PATH);
+    
 }
 
 int main(int argc, char* argv[]) {
@@ -82,7 +79,16 @@ int main(int argc, char* argv[]) {
 
     SDL_Rect canvas = { 0, 0, window_width, window_height / 2 };
 
-    int frameCount = 31410;
+    // Public var
+    // Load image frame
+    struct Frame* frame = load_frame(FRAME_PATH);
+    char currentFrame = 1;
+
+    int frameCount = 0;
+    Uint32 time_start = 0;
+    Uint32 time_between_frame = 1000;
+
+    // Waves variables
     int horizontal_div = 30;
     int horizontal_div_height = canvas.h / horizontal_div;
     float maxAmp = (float) horizontal_div_height / 2 - 2;
@@ -93,7 +99,10 @@ int main(int argc, char* argv[]) {
         /* Input */
         SDL_Event evt;
         while (SDL_PollEvent(&evt)) {
-            if (evt.type == SDL_QUIT) cleanup();
+            if (evt.type == SDL_QUIT) {
+                free_frame(frame);
+                cleanup();
+            }
         }
 
         // Draw background
@@ -101,11 +110,27 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // Draw image
+        if (SDL_GetTicks() - time_start > time_between_frame) {
+            time_start = SDL_GetTicks();
+            free_frame(frame);
+            SDL_DestroyTexture(img_texture);
+
+            if (currentFrame == 1) {
+                frame = load_frame(FRAME2_PATH);
+                img_texture = IMG_LoadTexture(renderer, FRAME2_PATH);
+                currentFrame = 2;
+            }
+            else {
+                frame = load_frame(FRAME_PATH);
+                img_texture = IMG_LoadTexture(renderer, FRAME_PATH);
+                currentFrame = 1;
+            }
+            
+        }
         SDL_RenderCopy(renderer, img_texture, NULL, &canvas);
 
-        // Draw wavy lines
+        // Draw waves
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 1);
-        
         {
             int horizontal;
             for (horizontal = 0; horizontal < horizontal_div; horizontal++) {
@@ -153,7 +178,8 @@ inline float map(float v, float a, float b, float c, float d) {
 }
 
 void cleanup() {
-    free_frame(frame);
+    //free_frame(frame);
+    SDL_DestroyTexture(img_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
