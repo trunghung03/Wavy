@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -5,13 +7,14 @@
 #include <SDL_image.h>
 #include "image.h"
 
-#define FRAME_PATH "./asset/frame.png"
-#define FRAME2_PATH "./asset/frame2.png"
+#define PATH_LENGTH 23
+#define LAST_FRAME 6573
 
 void setupSDL();
 void setupFrame();
-inline void drawLine(float prevX, float prevY, float x, float y);
+void drawLine(float prevX, float prevY, float x, float y);
 inline float map(float v, float a, float b, float c, float d);
+inline void setFileName(int i);
 void cleanup();
 
 // SDL
@@ -21,6 +24,8 @@ int window_height = 500;
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* img_texture;
+
+char file_path[PATH_LENGTH] = { 0 };
 
 void setupSDL() {
     /* SDL setup */
@@ -63,13 +68,12 @@ void setupSDL() {
 // image setup
 void setupFrame() {
     // Set up display frame on SDL
-    img_texture = IMG_LoadTexture(renderer, FRAME_PATH);
+    setFileName(1);
+    img_texture = IMG_LoadTexture(renderer, file_path);
     SDL_QueryTexture(img_texture, NULL, NULL, &window_width, &window_height);
     window_height *= 2; // make space for drawing sine waves
     // Added some padding to prevent cutoff
     SDL_SetWindowSize(window, window_width, window_height + 5);
-
-    
 }
 
 int main(int argc, char* argv[]) {
@@ -81,18 +85,20 @@ int main(int argc, char* argv[]) {
 
     // Public var
     // Load image frame
-    struct Frame* frame = load_frame(FRAME_PATH);
-    char currentFrame = 1;
+    int currentFrame = 1;
+    setFileName(currentFrame);
+    struct Frame* frame = load_frame(file_path);
 
+    // Timing stuff
     int frameCount = 0;
     Uint32 time_start = 0;
-    Uint32 time_between_frame = 1000;
+    Uint32 time_between_frame = 33;
 
     // Waves variables
-    int horizontal_div = 30;
+    int horizontal_div = 20;
     int horizontal_div_height = canvas.h / horizontal_div;
     float maxAmp = (float) horizontal_div_height / 2 - 2;
-    float frequency = 70;
+    float frequency = 50;
 
     int running = 1;
     while (running) {
@@ -110,22 +116,15 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         // Draw image
-        if (SDL_GetTicks() - time_start > time_between_frame) {
+        if (SDL_GetTicks() - time_start > time_between_frame && currentFrame < LAST_FRAME) {
             time_start = SDL_GetTicks();
             free_frame(frame);
             SDL_DestroyTexture(img_texture);
 
-            if (currentFrame == 1) {
-                frame = load_frame(FRAME2_PATH);
-                img_texture = IMG_LoadTexture(renderer, FRAME2_PATH);
-                currentFrame = 2;
-            }
-            else {
-                frame = load_frame(FRAME_PATH);
-                img_texture = IMG_LoadTexture(renderer, FRAME_PATH);
-                currentFrame = 1;
-            }
-            
+            currentFrame++;
+            setFileName(currentFrame);
+            frame = load_frame(file_path);
+            img_texture = IMG_LoadTexture(renderer, file_path);
         }
         SDL_RenderCopy(renderer, img_texture, NULL, &canvas);
 
@@ -140,12 +139,12 @@ int main(int argc, char* argv[]) {
                 float prevY = (float) y;
                 int x;
                 for (x = 0; x < window_width; x++) {
-                    float angle = map((float)x, 0, (float)window_width, 0, (float)M_PI * 2);
-                    float phase = (float)frameCount / 10;
+                    float angle = map((float) x, 0, (float)window_width, 0, (float) M_PI * 2);
+                    float phase = y * (float) M_PI / 4 + (float)frameCount / 2;
                     float sinValue = sinf(phase + angle * frequency);
                     //float sinValue = sinf(angle * frequency);
 
-                    int grayIndex = get_pixel(frame, x, y);
+                    int grayIndex = get_pixel(frame, x, (int) y);
 
                     float amp = map((float) grayIndex, 0, 255, 0, maxAmp);
 
@@ -169,12 +168,16 @@ int main(int argc, char* argv[]) {
 
 // convert normalized x, y coord to real coord
 // Used drawLine instead of point because points can have gaps
-inline void drawLine(float prevX, float prevY, float x, float y) {
+void drawLine(float prevX, float prevY, float x, float y) {
     SDL_RenderDrawLineF(renderer, prevX, prevY, x, y);
 }
 
 inline float map(float v, float a, float b, float c, float d) {
     return (v - a) / (b - a) * (d - c) + c;
+}
+
+inline void setFileName(int i) {
+    sprintf(file_path, "./asset/frame%04d.png", i);
 }
 
 void cleanup() {
