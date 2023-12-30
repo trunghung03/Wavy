@@ -11,7 +11,10 @@ On a more personal note. After listing out all of the possible improvements, it 
 
 ## Demo
 
-https://github.com/trunghung03/Wavy/assets/61304518/f081a841-6773-47d7-89bb-a15df8d79975
+
+
+https://github.com/trunghung03/Wavy/assets/61304518/7b21c2da-847c-45c4-a830-4857951bf054
+
 
 
 ## Credits
