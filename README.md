@@ -9,6 +9,11 @@ Also, manually loading every image file means that calculating the frame rate is
 
 On a more personal note. After listing out all of the possible improvements, it astounds me how fast computers are that this program is running at 'real-time'.
 
+## Demo
+
+https://github.com/trunghung03/Wavy/assets/61304518/f081a841-6773-47d7-89bb-a15df8d79975
+
+
 ## Credits
 Very inspired by Low Byte Productions' video: https://www.youtube.com/watch?v=5vzMgNAzEuA
 Made using SDL2 for the display, SDL2_image for rendering PNGs, stb_image for getting the gray scale value from each image.
