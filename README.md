@@ -19,4 +19,5 @@ https://github.com/trunghung03/Wavy/assets/61304518/7b21c2da-847c-45c4-a830-4857
 
 ## Credits
 Very inspired by Low Byte Productions' video: https://www.youtube.com/watch?v=5vzMgNAzEuA
+
 Made using SDL2 for the display, SDL2_image for rendering PNGs, stb_image for getting the gray scale value from each image.
