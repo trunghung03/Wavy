@@ -131,6 +131,8 @@ int main(int argc, char* argv[]) {
         // Draw waves
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 1);
         {
+            //frequency = map(sinf((float)frameCount / 30), -1, 1, 40, 60);
+
             int horizontal;
             for (horizontal = 0; horizontal < horizontal_div; horizontal++) {
                 float y = (float) horizontal * horizontal_div_height + (float) horizontal_div_height / 2;
